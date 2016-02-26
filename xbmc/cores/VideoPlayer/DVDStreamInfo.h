@@ -24,6 +24,7 @@
 
 extern "C" {
 #include "libavcodec/avcodec.h"
+#include "libavutil/pixfmt.h"
 }
 
 #define CODEC_FORCE_SOFTWARE 0x01
@@ -58,6 +59,7 @@ public:
   int codecOptions;
 
   // VIDEO
+  AVPixelFormat pixfmt; // used if codec is AV_CODEC_ID_NONE
   int fpsscale; // scale of 1001 and a rate of 60000 will result in 59.94 fps
   int fpsrate;
   int height; // height of the stream reported by the demuxer

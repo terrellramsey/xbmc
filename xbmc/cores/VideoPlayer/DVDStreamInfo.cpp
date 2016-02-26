@@ -55,6 +55,7 @@ void CDVDStreamInfo::Clear()
   cryptoSession = nullptr;
   externalInterfaces = nullptr;
 
+  pixfmt   = AV_PIX_FMT_NONE;
   fpsscale = 0;
   fpsrate  = 0;
   height   = 0;
@@ -99,7 +100,8 @@ bool CDVDStreamInfo::Equal(const CDVDStreamInfo& right, bool withextradata)
   }
 
   // VIDEO
-  if( fpsscale != right.fpsscale
+  if( pixfmt   != right.pixfmt
+  ||  fpsscale != right.fpsscale
   ||  fpsrate  != right.fpsrate
   ||  height   != right.height
   ||  width    != right.width
@@ -166,6 +168,7 @@ void CDVDStreamInfo::Assign(const CDVDStreamInfo& right, bool withextradata)
   externalInterfaces = right.externalInterfaces;
 
   // VIDEO
+  pixfmt   = right.pixfmt;
   fpsscale = right.fpsscale;
   fpsrate  = right.fpsrate;
   height   = right.height;
@@ -231,6 +234,7 @@ void CDVDStreamInfo::Assign(const CDemuxStream& right, bool withextradata)
   else if(  right.type == STREAM_VIDEO )
   {
     const CDemuxStreamVideo *stream = static_cast<const CDemuxStreamVideo*>(&right);
+    pixfmt    = stream->pixfmt;
     fpsscale  = stream->iFpsScale;
     fpsrate   = stream->iFpsRate;
     height    = stream->iHeight;
