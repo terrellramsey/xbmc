@@ -26,6 +26,7 @@
 #include "DVDInputStreamFFmpeg.h"
 #include "DVDInputStreamPVRManager.h"
 #include "InputStreamAddon.h"
+#include "InputStreamGame.h"
 #include "InputStreamMultiSource.h"
 #ifdef HAVE_LIBBLURAY
 #include "DVDInputStreamBluray.h"
@@ -42,6 +43,7 @@
 #include "ServiceBroker.h"
 #include "addons/InputStream.h"
 #include "addons/BinaryAddonCache.h"
+#include "games/GameTypes.h"
 #include "Util.h"
 
 
@@ -59,6 +61,23 @@ CDVDInputStream* CDVDFactoryInputStream::CreateInputStream(IVideoPlayer* pPlayer
     {
       return CreateInputStream(pPlayer, fileitem, filenames);
     }
+  }
+
+  // Get the game client ID from the file properties
+  std::string gameClientId = fileitem.GetProperty(FILEITEM_PROPERTY_GAME_CLIENT).asString();
+
+  // If the fileitem's add-on is a game client, fall back to that
+  if (gameClientId.empty())
+  {
+    if (fileitem.HasAddonInfo() && fileitem.GetAddonInfo()->Type() == ADDON::ADDON_GAMEDLL)
+      gameClientId = fileitem.GetAddonInfo()->ID();
+  }
+
+  if (!gameClientId.empty())
+  {
+    ADDON::AddonPtr addon;
+    if (ADDON::CAddonMgr::GetInstance().GetAddon(gameClientId, addon, ADDON::ADDON_GAMEDLL))
+      return new CInputStreamGame(fileitem, std::dynamic_pointer_cast<GAME::CGameClient>(addon));
   }
 
   ADDON::VECADDONS addons;

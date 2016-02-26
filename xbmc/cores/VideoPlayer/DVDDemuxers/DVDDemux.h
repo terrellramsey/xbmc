@@ -41,6 +41,7 @@ namespace ADDON {
 
 extern "C" {
 #include "libavcodec/avcodec.h"
+#include "libavutil/pixfmt.h"
 }
 
 #ifndef __GNUC__
@@ -150,6 +151,7 @@ class CDemuxStreamVideo : public CDemuxStream
 public:
   CDemuxStreamVideo() : CDemuxStream()
   {
+    pixfmt = AV_PIX_FMT_NONE;
     iFpsScale = 0;
     iFpsRate = 0;
     iHeight = 0;
@@ -165,6 +167,8 @@ public:
   }
 
   virtual ~CDemuxStreamVideo() {}
+
+  AVPixelFormat pixfmt; // used if codec is AV_CODEC_ID_NONE
   int iFpsScale; // scale of 1000 and a rate of 29970 will result in 29.97 fps
   int iFpsRate;
   int iHeight; // height of the stream reported by the demuxer

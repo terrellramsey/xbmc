@@ -8,6 +8,7 @@ set(SOURCES DVDFactoryInputStream.cpp
             DVDInputStreamStack.cpp
             DVDStateSerializer.cpp
             InputStreamAddon.cpp
+            InputStreamGame.cpp
             InputStreamMultiSource.cpp)
 
 set(HEADERS DVDFactoryInputStream.h
@@ -21,6 +22,7 @@ set(HEADERS DVDFactoryInputStream.h
             DVDStateSerializer.h
             DllDvdNav.h
             InputStreamAddon.h
+            InputStreamGame.h
             InputStreamMultiStreams.h
             InputStreamMultiSource.h)
 
