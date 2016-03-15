@@ -23,6 +23,7 @@
 
 #include "DVDFactoryCodec.h"
 #include "Video/DVDVideoCodec.h"
+#include "Video/PixelConverter.h"
 #include "Audio/DVDAudioCodec.h"
 #include "Overlay/DVDOverlayCodec.h"
 #include "cores/VideoPlayer/DVDCodecs/DVDCodecs.h"
@@ -62,6 +63,13 @@ CDVDVideoCodec* CDVDFactoryCodec::CreateVideoCodec(CDVDStreamInfo &hint, CProces
     options.m_formats = info.formats;
 
   options.m_opaque_pointer = info.opaque_pointer;
+
+  if (hint.codec == AV_CODEC_ID_NONE && hint.pixfmt != AV_PIX_FMT_NONE)
+  {
+    pCodec = OpenCodec(new CPixelConverter(processInfo), hint, options);
+    if (pCodec)
+      return pCodec;
+  }
 
   // platform specifig video decoders
   if (!(hint.codecOptions & CODEC_FORCE_SOFTWARE))

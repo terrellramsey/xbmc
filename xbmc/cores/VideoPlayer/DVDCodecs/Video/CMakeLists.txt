@@ -1,8 +1,10 @@
 set(SOURCES DVDVideoCodec.cpp
-            DVDVideoCodecFFmpeg.cpp)
+            DVDVideoCodecFFmpeg.cpp
+            PixelConverter.cpp)
 
 set(HEADERS DVDVideoCodec.h
-            DVDVideoCodecFFmpeg.h)
+            DVDVideoCodecFFmpeg.h
+            PixelConverter.h)
 
 if(NOT ENABLE_EXTERNAL_LIBAV)
   list(APPEND SOURCES DVDVideoPPFFmpeg.cpp)
