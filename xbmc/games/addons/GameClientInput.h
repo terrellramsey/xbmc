@@ -46,6 +46,8 @@ namespace GAME
      */
     CGameClientInput(CGameClient* addon, int port, const ControllerPtr& controller, const KodiToAddonFuncTable_Game* dllStruct);
 
+    virtual ~CGameClientInput() = default;
+
     // Implementation of IInputHandler
     virtual std::string ControllerID(void) const override;
     virtual bool HasFeature(const std::string& feature) const override;
