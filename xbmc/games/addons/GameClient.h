@@ -29,10 +29,10 @@
 #include "threads/CriticalSection.h"
 
 #include <atomic>
+#include <map>
 #include <set>
 #include <stdint.h>
 #include <string>
-#include <vector>
 
 class CFileItem;
 
@@ -43,9 +43,10 @@ namespace GAME
   class CGameClientInput;
   class CGameClientKeyboard;
   class CGameClientMouse;
-  class IGameAudioCallback;
   class IGameClientPlayback;
-  class IGameVideoCallback;
+  class IGameClientStream;
+  class IRetroPlayerVideo;
+  class IRetroPlayerAudio;
 
   // --- CGameClient -------------------------------------------------------------
 
@@ -74,7 +75,9 @@ namespace GAME
     // Start/stop gameplay
     bool Initialize(void);
     void Unload();
-    bool OpenFile(const CFileItem& file, IGameAudioCallback* audio, IGameVideoCallback* video);
+    //bool OpenFile(const CFileItem& file, IGameAudioCallback* audio, IGameVideoCallback* video);
+    bool OpenFile(const CFileItem& file, IRetroPlayerVideo* video, IRetroPlayerAudio* audio);
+
     void Reset();
     void CloseFile();
     const std::string& GetGamePath() const { return m_gamePath; }
@@ -85,18 +88,14 @@ namespace GAME
     const CGameClientTiming& Timing() const { return m_timing; }
     void RunFrame();
 
-    // Audio/video callbacks
-    bool OpenPixelStream(GAME_PIXEL_FORMAT format, unsigned int width, unsigned int height, GAME_VIDEO_ROTATION rotation);
-    bool OpenVideoStream(GAME_VIDEO_CODEC codec);
-    bool OpenPCMStream(GAME_PCM_FORMAT format, const GAME_AUDIO_CHANNEL* channelMap);
-    bool OpenAudioStream(GAME_AUDIO_CODEC codec, const GAME_AUDIO_CHANNEL* channelMap);
-    void AddStreamData(GAME_STREAM_TYPE stream, const uint8_t* data, unsigned int size);
-    void CloseStream(GAME_STREAM_TYPE stream);
+    // Stream functions
+    bool Deserialize(const uint8_t* data, size_t size)
 
-    // Access memory
-    size_t SerializeSize() const { return m_serializeSize; }
-    bool Serialize(uint8_t* data, size_t size);
-    bool Deserialize(const uint8_t* data, size_t size);
+    // Stream callbacks
+    game_stream_handle* OpenStream(const game_stream_details& info);
+    bool ChangeStreamDetails(game_stream_handle* stream, const game_stream_details& info);
+    void AddStreamData(game_stream_handle* stream, const uint8_t* data, unsigned int size);
+    void CloseStream(game_stream_handle* stream);
 
     // Input callbacks
     bool OpenPort(unsigned int port);
@@ -152,12 +151,16 @@ namespace GAME
     std::atomic_bool      m_bIsPlaying;          // True between OpenFile() and CloseFile()
     std::string           m_gamePath;
     size_t                m_serializeSize;
-    IGameAudioCallback*   m_audio;               // The audio callback passed to OpenFile()
-    IGameVideoCallback*   m_video;               // The video callback passed to OpenFile()
+    IRetroPlayerVideo*    m_video;               // The video callback passed to OpenFile()
+    IRetroPlayerAudio*    m_audio;               // The audio callback passed to OpenFile()
     CGameClientTiming     m_timing;              // Class to scale playback to avoid resampling audio
     PERIPHERALS::EventRateHandle m_inputRateHandle; // Handle while keeping the input sampling rate at the frame rate
     std::unique_ptr<IGameClientPlayback> m_playback; // Interface to control playback
     GAME_REGION           m_region;              // Region of the loaded game
+
+    // Streams
+    //std::map<game_stream_handle, game_stream_details> m_outStreams; // Data sent to game client
+    std::set<std::unique_ptr<IGameClientStream>> m_inStreams; // Data arriving from callback
 
     // In-game saves
     std::unique_ptr<CGameClientInGameSaves> m_inGameSaves;

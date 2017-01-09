@@ -19,7 +19,7 @@
  */
 #pragma once
 
-#include "games/addons/GameClientCallbacks.h"
+#include "streams/IAudioStream.h"
 
 #include <memory>
 
@@ -27,27 +27,46 @@ class CDVDAudioCodec;
 class CProcessInfo;
 class IAEStream;
 
-namespace GAME
+namespace RETROPLAYER
 {
-  class CRetroPlayerAudio : public IGameAudioCallback
+  class CRetroPlayerAudioStream : public IAudioStream
   {
   public:
-    CRetroPlayerAudio(CProcessInfo& processInfo);
-    virtual ~CRetroPlayerAudio();
+    CRetroPlayerAudioStream(CProcessInfo& processInfo);
+    virtual ~CRetroPlayerAudioStream();
 
-    // implementation of IGameAudioCallback
-    virtual unsigned int NormalizeSamplerate(unsigned int samplerate) const override;
-    virtual bool OpenPCMStream(AEDataFormat format, unsigned int samplerate, const CAEChannelInfo& channelLayout) override;
-    virtual bool OpenEncodedStream(AVCodecID codec, unsigned int samplerate, const CAEChannelInfo& channelLayout) override;
-    virtual void AddData(const uint8_t* data, unsigned int size) override;
+    // implementation of IRetroPlayerAudioCallback
+    virtual bool SetPCMStream(AEDataFormat format, unsigned int samplerate, const CAEChannelInfo& channelLayout) override;
+    virtual bool SetEncodedStream(AVCodecID codec, unsigned int samplerate, const CAEChannelInfo& channelLayout) override;
+    virtual bool OpenStream() override;
+    virtual void AddStreamData(const uint8_t* data, unsigned int size) override;
     virtual void CloseStream() override;
 
     void Enable(bool bEnabled) { m_bAudioEnabled = bEnabled; }
 
   private:
+    enum class AUDIO_TYPE
+    {
+      INVALID,
+      PCM,
+      ENCODED,
+    };
+
+    bool IsOpen() const;
+
+    // Construction parameters
     CProcessInfo& m_processInfo;
+
+    // Stream parameters
+    AUDIO_TYPE m_type;
+    AEDataFormat m_format;
+    AVCodecID m_codec;
+    unsigned int m_samplerate;
+    CAEChannelInfo m_channelLayout;
+    bool m_bAudioEnabled;
     IAEStream* m_pAudioStream;
+
+    // Codec parameters
     std::unique_ptr<CDVDAudioCodec> m_pAudioCodec;
-    bool       m_bAudioEnabled;
   };
 }

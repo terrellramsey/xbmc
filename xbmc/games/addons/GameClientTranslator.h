@@ -21,6 +21,7 @@
 
 #include "addons/kodi-addon-dev-kit/include/kodi/kodi_game_types.h"
 #include "cores/AudioEngine/Utils/AEChannelData.h"
+#include "cores/AudioEngine/Utils/AEChannelInfo.h"
 #include "input/Key.h"
 
 #include "libavcodec/avcodec.h"
@@ -68,6 +69,13 @@ namespace GAME
     static AVCodecID TranslateVideoCodec(GAME_VIDEO_CODEC codec);
 
     /*!
+     * \brief Translate video rotation (Game API to degrees clockwise).
+     * \param format The rotation value translate.
+     * \return Translated The orientation in degrees clockwise
+     */
+    static unsigned int CGameClientTranslator::TranslateRotation(GAME_VIDEO_ROTATION rotation);
+
+    /*!
      * \brief Translate audio PCM format (Game API to AudioEngine).
      * \param format The audio PCM format to translate.
      * \return Translated audio PCM format.
@@ -80,6 +88,13 @@ namespace GAME
      * \return Translated audio channels.
      */
     static AEChannel TranslateAudioChannel(GAME_AUDIO_CHANNEL channel);
+
+    /*!
+     * \brief Translate audio channels (Game API to AudioEngine).
+     * \param format The audio channels to translate.
+     * \return Translated audio channels.
+     */
+    static CAEChannelInfo TranslateAudioChannels(const GAME_AUDIO_CHANNEL* channelMap);
 
     /*!
      * \brief Translate audio codec (Game API to FFMPEG).

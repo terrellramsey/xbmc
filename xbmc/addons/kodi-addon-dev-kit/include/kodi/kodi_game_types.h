@@ -73,13 +73,16 @@ typedef enum GAME_ERROR
   GAME_ERROR_FAILED,                 // the command failed
   GAME_ERROR_NOT_LOADED,             // no game is loaded
   GAME_ERROR_RESTRICTED,             // game requires restricted resources
+  GAME_ERROR_NO_EFFECT,              // the command had no effect
 } GAME_ERROR;
 
 typedef enum GAME_STREAM_TYPE
 {
   GAME_STREAM_UNKNOWN,
-  GAME_STREAM_AUDIO,
   GAME_STREAM_VIDEO,
+  GAME_STREAM_AUDIO,
+  GAME_STREAM_INPUT,
+  GAME_STREAM_SAVESTATE,
 } GAME_STREAM_TYPE;
 
 typedef enum GAME_PIXEL_FORMAT
@@ -120,7 +123,7 @@ typedef enum GAME_AUDIO_CODEC
 
 typedef enum GAME_AUDIO_CHANNEL
 {
-  GAME_CH_NULL, // Channel list terminator
+  GAME_CH_NONE = 0,
   GAME_CH_FL,
   GAME_CH_FR,
   GAME_CH_FC,
@@ -141,7 +144,18 @@ typedef enum GAME_AUDIO_CHANNEL
   GAME_CH_TBC,
   GAME_CH_BLOC,
   GAME_CH_BROC,
+  GAME_CH_MAX = GAME_CH_BROC
 } GAME_AUDIO_CHANNEL;
+
+typedef enum GAME_BINARY_FORMAT
+{
+  GAME_STREAM_FORMAT_UNKNOWN,
+  GAME_STREAM_FORMAT_BINARY,
+  GAME_STREAM_FORMAT_TEXT,
+  GAME_STREAM_FORMAT_UTF8,
+  GAME_STREAM_FORMAT_JSON,
+  GAME_STREAM_FORMAT_XML,
+} GAME_STREAM_FORMAT;
 
 // TODO
 typedef enum GAME_HW_FRAME_BUFFER
@@ -277,6 +291,52 @@ typedef enum GAME_ROTATION
   GAME_ROTATION_270_CW,
 } GAME_ROTATION;
 
+typedef struct game_stream_details_video
+{
+  GAME_PIXEL_FORMAT format;
+  GAME_VIDEO_CODEC codec;
+  unsigned int width;
+  unsigned int height;
+  double aspect;
+  GAME_VIDEO_ROTATION rotation;
+  double fps;
+} game_stream_details_video;
+
+typedef struct game_stream_details_audio
+{
+  GAME_PCM_FORMAT format;
+  GAME_AUDIO_CODEC codec;
+  unsigned int sample_rate;
+  GAME_AUDIO_CHANNEL channel_map[GAME_CH_MAX];
+  int controller_port;
+} game_stream_details_audio;
+
+typedef struct game_stream_details_input
+{
+  GAME_BINARY_FORMAT format;
+  unsigned int port_count;
+  const char* controller_ids[16];
+} game_stream_details_input;
+
+typedef struct game_stream_details_state
+{
+  unsigned int size;
+} game_stream_details_state;
+
+typedef struct game_stream_details
+{
+  GAME_STREAM_TYPE type;
+  union
+  {
+    game_stream_details_video video;
+    game_stream_details_audio audio;
+    game_stream_details_input input;
+    game_stream_details_state state;
+  };
+} game_stream_details;
+
+typedef void *game_stream_handle;
+
 typedef struct game_controller
 {
   const char*  controller_id;
@@ -288,6 +348,7 @@ typedef struct game_controller
   unsigned int rel_pointer_count;
   unsigned int abs_pointer_count;
   unsigned int motor_count;
+  unsigned int microphone_count;
 } ATTRIBUTE_PACKED game_controller;
 
 typedef struct game_digital_button_event
@@ -461,13 +522,16 @@ typedef struct KodiToAddonFuncTable_Game
   bool        (__cdecl* RequiresGameLoop)(void);
   GAME_ERROR  (__cdecl* RunFrame)(void);
   GAME_ERROR  (__cdecl* Reset)(void);
+  void*       (__cdecl* OpenStream)(const game_stream_details* info);
+  GAME_ERROR  (__cdecl* ChangeStreamDetails)(game_stream_handle* stream, const game_stream_details& info);
+  void        (__cdecl* AddStreamData)(void* stream, const uint8_t* data, unsigned int size);
+  void        (__cdecl* CloseStream)(void* stream);
   GAME_ERROR  (__cdecl* HwContextReset)(void);
   GAME_ERROR  (__cdecl* HwContextDestroy)(void);
   void        (__cdecl* UpdatePort)(int, bool, const game_controller*);
   bool        (__cdecl* HasFeature)(const char* controller_id, const char* feature_name);
   bool        (__cdecl* InputEvent)(const game_input_event*);
-  size_t      (__cdecl* SerializeSize)(void);
-  GAME_ERROR  (__cdecl* Serialize)(uint8_t*, size_t);
+  GAME_ERROR  (__cdecl* EnableSerialization)(void);
   GAME_ERROR  (__cdecl* Deserialize)(const uint8_t*, size_t);
   GAME_ERROR  (__cdecl* CheatReset)(void);
   GAME_ERROR  (__cdecl* GetMemory)(GAME_MEMORY, uint8_t**, size_t*);

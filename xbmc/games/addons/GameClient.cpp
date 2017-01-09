@@ -25,6 +25,7 @@
 #include "GameClientKeyboard.h"
 #include "GameClientMouse.h"
 #include "GameClientTranslator.h"
+#include "GameClientStream.h"
 #include "addons/AddonManager.h"
 #include "addons/BinaryAddonCache.h"
 #include "cores/AudioEngine/Utils/AEChannelInfo.h"
@@ -482,179 +483,6 @@ void CGameClient::RunFrame()
   }
 }
 
-bool CGameClient::OpenPixelStream(GAME_PIXEL_FORMAT format, unsigned int width, unsigned int height, GAME_VIDEO_ROTATION rotation)
-{
-  if (!m_video)
-    return false;
-
-  AVPixelFormat pixelFormat = CGameClientTranslator::TranslatePixelFormat(format);
-  if (pixelFormat == AV_PIX_FMT_NONE)
-  {
-    CLog::Log(LOGERROR, "GAME: Unknown pixel format: %d", format);
-    return false;
-  }
-
-  unsigned int orientation = 0;
-  switch (rotation)
-  {
-    case GAME_VIDEO_ROTATION_90:
-      orientation = 360 - 90;
-      break;
-    case GAME_VIDEO_ROTATION_180:
-      orientation = 360 - 180;
-      break;
-    case GAME_VIDEO_ROTATION_270:
-      orientation = 360 - 270;
-      break;
-    default:
-      break;
-  }
-
-  return m_video->OpenPixelStream(pixelFormat, width, height, m_timing.GetFrameRate(), orientation);
-}
-
-bool CGameClient::OpenVideoStream(GAME_VIDEO_CODEC codec)
-{
-  if (!m_video)
-    return false;
-
-  AVCodecID videoCodec = CGameClientTranslator::TranslateVideoCodec(codec);
-  if (videoCodec == AV_CODEC_ID_NONE)
-  {
-    CLog::Log(LOGERROR, "GAME: Unknown video format: %d", codec);
-    return false;
-  }
-
-  return m_video->OpenEncodedStream(videoCodec);
-}
-
-bool CGameClient::OpenPCMStream(GAME_PCM_FORMAT format, const GAME_AUDIO_CHANNEL* channelMap)
-{
-  if (!m_audio || channelMap == nullptr)
-    return false;
-
-  AEDataFormat pcmFormat = CGameClientTranslator::TranslatePCMFormat(format);
-  if (pcmFormat == AE_FMT_INVALID)
-  {
-    CLog::Log(LOGERROR, "GAME: Unknown PCM format: %d", format);
-    return false;
-  }
-
-  CAEChannelInfo channelLayout;
-  for (const GAME_AUDIO_CHANNEL* channelPtr = channelMap; *channelPtr != GAME_CH_NULL; channelPtr++)
-  {
-    AEChannel channel = CGameClientTranslator::TranslateAudioChannel(*channelPtr);
-    if (channel == AE_CH_NULL)
-    {
-      CLog::Log(LOGERROR, "GAME: Unknown channel ID: %d", *channelPtr);
-      return false;
-    }
-    channelLayout += channel;
-  }
-
-  return m_audio->OpenPCMStream(pcmFormat, m_timing.GetSampleRate(), channelLayout);
-}
-
-bool CGameClient::OpenAudioStream(GAME_AUDIO_CODEC codec, const GAME_AUDIO_CHANNEL* channelMap)
-{
-  if (!m_audio)
-    return false;
-
-  AVCodecID audioCodec = CGameClientTranslator::TranslateAudioCodec(codec);
-  if (audioCodec == AV_CODEC_ID_NONE)
-  {
-    CLog::Log(LOGERROR, "GAME: Unknown audio codec: %d", codec);
-    return false;
-  }
-
-  CAEChannelInfo channelLayout;
-  for (const GAME_AUDIO_CHANNEL* channelPtr = channelMap; *channelPtr != GAME_CH_NULL; channelPtr++)
-  {
-    AEChannel channel = CGameClientTranslator::TranslateAudioChannel(*channelPtr);
-    if (channel == AE_CH_NULL)
-    {
-      CLog::Log(LOGERROR, "GAME: Unknown channel ID: %d", *channelPtr);
-      return false;
-    }
-    channelLayout += channel;
-  }
-
-  return m_audio->OpenEncodedStream(audioCodec, m_timing.GetSampleRate(), channelLayout);
-}
-
-void CGameClient::AddStreamData(GAME_STREAM_TYPE stream, const uint8_t* data, unsigned int size)
-{
-  switch (stream)
-  {
-    case GAME_STREAM_AUDIO:
-    {
-      if (m_audio)
-        m_audio->AddData(data, size);
-      break;
-    }
-    case GAME_STREAM_VIDEO:
-    {
-      if (m_video)
-        m_video->AddData(data, size);
-      break;
-    }
-    default:
-      break;
-  }
-}
-
-void CGameClient::CloseStream(GAME_STREAM_TYPE stream)
-{
-  switch (stream)
-  {
-    case GAME_STREAM_AUDIO:
-    {
-      if (m_audio)
-        m_audio->CloseStream();
-      break;
-    }
-    case GAME_STREAM_VIDEO:
-    {
-      if (m_video)
-        m_video->CloseStream();
-      break;
-    }
-    default:
-      break;
-  }
-}
-
-size_t CGameClient::GetSerializeSize()
-{
-  CSingleLock lock(m_critSection);
-
-  size_t serializeSize = 0;
-  if (m_bIsPlaying)
-  {
-    try { serializeSize = m_struct.SerializeSize(); }
-    catch (...) { LogException("SerializeSize()"); }
-  }
-
-  return serializeSize;
-}
-
-bool CGameClient::Serialize(uint8_t* data, size_t size)
-{
-  if (data == nullptr || size == 0)
-    return false;
-
-  CSingleLock lock(m_critSection);
-
-  bool bSuccess = false;
-  if (m_bIsPlaying)
-  {
-    try { bSuccess = LogError(m_struct.Serialize(data, size), "Serialize()"); }
-    catch (...) { LogException("Serialize()"); }
-  }
-
-  return bSuccess;
-}
-
 bool CGameClient::Deserialize(const uint8_t* data, size_t size)
 {
   if (data == nullptr || size == 0)
@@ -662,14 +490,130 @@ bool CGameClient::Deserialize(const uint8_t* data, size_t size)
 
   CSingleLock lock(m_critSection);
 
-  bool bSuccess = false;
+  // Open serialization stream
+  game_stream_handle stream = nullptr;
   if (m_bIsPlaying)
   {
-    try { bSuccess = LogError(m_struct.Deserialize(data, size), "Deserialize()"); }
-    catch (...) { LogException("Deserialize()"); }
+    game_stream_details details = { GAME_STREAM_SAVESTATE };
+    try
+    {
+      stream = m_struct.OpenStream(details);
+    }
+    catch (...)
+    {
+      LogException("OpenStream()");
+    }
   }
 
-  return bSuccess;
+  if (stream != nullptr)
+  {
+    // Deserialize
+    try
+    {
+      m_struct.AddStreamData(stream, data, size);
+    }
+    catch (...)
+    {
+      LogException("AddStreamData()");
+    }
+
+    // Close stream
+    try
+    {
+      m_struct.CloseStream(stream);
+    }
+    catch (...)
+    {
+      LogException("CloseStream()");
+    }
+
+    return true;
+  }
+
+  return false;
+}
+
+game_stream_handle* CGameClient::OpenStream(const game_stream_details& info)
+{
+  if (info.type == GAME_STREAM_UNKNOWN)
+    return nullptr;
+
+  std::unique_ptr<IGameClientStream> stream;
+
+  switch (info.type)
+  {
+  case GAME_STREAM_VIDEO:
+    stream.reset(new CGameClientVideoStream(info, m_video));
+    break;
+  case GAME_STREAM_AUDIO:
+    stream.reset(new CGameClientAudioStream(info, m_audio));
+    break;
+  case GAME_STREAM_INPUT:
+    //! @todo
+    break;
+  case GAME_STREAM_SAVESTATE:
+    //! @todo
+    break;
+  default:
+    break;
+  }
+
+  game_stream_handle* result = static_cast<game_stream_handle*>(stream.get());
+
+  if (result != nullptr)
+    m_inStreams.emplace(std::move(stream));
+
+  return result;
+}
+
+bool CGameClient::ChangeStreamDetails(game_stream_handle* stream, const game_stream_details& info)
+{
+  CGameClientStream* pStream = static_cast<CGameClientStream*>(stream);
+  if (pStream)
+  {
+    for (auto inStream : m_inStreams)
+    {
+      if (inStream.get() == pStream)
+        return inStream->ChangeStreamDetails(info);
+    }
+  }
+
+  return false;
+}
+
+void CGameClient::AddStreamData(game_stream_handle* stream, const uint8_t* data, unsigned int size)
+{
+  CGameClientStream* pStream = static_cast<CGameClientStream*>(stream);
+  if (pStream)
+  {
+    for (auto inStream : m_inStreams)
+    {
+      if (inStream.get() == pStream)
+      {
+        inStream->AddStreamData(data, size);
+        break;
+      }
+    }
+  }
+}
+
+void CGameClient::CloseStream(game_stream_handle* stream)
+{
+  CGameClientStream* pStream = static_cast<CGameClientStream*>(stream);
+  if (pStream)
+  {
+    using StreamIter = std::set<std::unique_ptr<CGameClientStream>>::iterator;
+
+    for (StreamIter itStream = m_inStreams.begin(); itStream != m_inStreams.end(); ++itStream)
+    {
+      if (itStream->get() == pStream)
+      {
+        (*itStream)->CloseStream();
+        m_inStreams.erase(itStream);
+        break;
+      }
+    }
+  }
 }
 
 bool CGameClient::OpenPort(unsigned int port)

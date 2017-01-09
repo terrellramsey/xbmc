@@ -19,8 +19,6 @@
  */
 
 #include "RetroPlayer.h"
-#include "RetroPlayerAudio.h"
-#include "RetroPlayerVideo.h"
 #include "cores/VideoPlayer/Process/ProcessInfo.h"
 #include "games/addons/playback/IGameClientPlayback.h"
 #include "games/addons/GameClient.h"
@@ -31,13 +29,15 @@
 #include "utils/MathUtils.h"
 #include "utils/StringUtils.h"
 #include "FileItem.h"
+#include "RetroPlayerAudioStream.h"
+#include "RetroPlayerVideoStream.h"
 #include "URL.h"
 
 using namespace GAME;
+using namespace RETROPLAYER;
 
 CRetroPlayer::CRetroPlayer(IPlayerCallback& callback) :
   IPlayer(callback),
-  m_renderManager(m_clock, this),
   m_processInfo(CProcessInfo::CreateInstance())
 {
 }
@@ -67,14 +67,19 @@ bool CRetroPlayer::OpenFile(const CFileItem& file, const CPlayerOptions& options
     if (m_gameClient->Initialize())
     {
       m_audio.reset(new CRetroPlayerAudio(*m_processInfo));
-      m_video.reset(new CRetroPlayerVideo(m_renderManager, *m_processInfo));
-      if (m_gameClient->OpenFile(file, m_audio.get(), m_video.get()))
+      m_video.reset(new CRetroPlayerVideo(m_callback, *m_processInfo));
+      if (m_video->m_videoPlayer->OpenFile(file, options))
       {
-        CLog::Log(LOGDEBUG, "RetroPlayer: Using game client %s", m_gameClient->ID().c_str());
-        bSuccess = true;
+        if (m_gameClient->OpenFile(file, m_audio.get(), m_video.get()))
+        {
+          CLog::Log(LOGDEBUG, "RetroPlayer: Using game client %s", m_gameClient->ID().c_str());
+          bSuccess = true;
+        }
+        else
+          CLog::Log(LOGERROR, "RetroPlayer: Failed to open file using %s", m_gameClient->ID().c_str());
       }
       else
-        CLog::Log(LOGERROR, "RetroPlayer: Failed to open file using %s", m_gameClient->ID().c_str());
+        CLog::Log(LOGERROR, "RetroPlayer: VideoPlayer failed to open file");
     }
     else
       CLog::Log(LOGERROR, "RetroPlayer: Failed to initialize %s", m_gameClient->ID().c_str());
@@ -317,24 +322,89 @@ bool CRetroPlayer::SetPlayerState(const std::string& state)
   return false;
 }
 
+void CRetroPlayer::FrameMove()
+{
+  m_video->FrameMove();
+}
+
+void CRetroPlayer::Render(bool clear, uint32_t alpha = 255, bool gui = true)
+{
+  m_video->Render(clear, alpha, gui);
+}
+
+void CRetroPlayer::FlushRenderer()
+{
+  m_video->FlushRenderer();
+}
+
+void CRetroPlayer::SetRenderViewMode(int mode)
+{
+  m_video->SetRenderViewMode(mode);
+}
+
+float CRetroPlayer::GetRenderAspectRatio()
+{
+  return m_video->GetRenderAspectRatio();
+}
+
+void CRetroPlayer::TriggerUpdateResolution()
+{
+  m_video->TriggerUpdateResolution();
+}
+
+bool CRetroPlayer::IsRenderingVideo()
+{
+  return m_video->IsRenderingVideo();
+}
+
+bool CRetroPlayer::IsRenderingGuiLayer()
+{
+  return m_video->IsRenderingGuiLayer();
+}
+
+bool CRetroPlayer::IsRenderingVideoLayer()
+{
+  return m_video->IsRenderingVideoLayer();
+}
+
 bool CRetroPlayer::Supports(EINTERLACEMETHOD method)
 {
-  return m_processInfo->Supports(method);
+  return m_video->IsRenderingVideoLayer();
 }
 
 EINTERLACEMETHOD CRetroPlayer::GetDeinterlacingMethodDefault()
 {
-  return m_processInfo->GetDeinterlacingMethodDefault();
+  return m_video->GetDeinterlacingMethodDefault();
 }
 
-void CRetroPlayer::UpdateClockSync(bool enabled)
+bool CRetroPlayer::Supports(ESCALINGMETHOD method)
 {
-  m_processInfo->SetRenderClockSync(enabled);
+  return m_video->Supports(method);
 }
 
-void CRetroPlayer::UpdateRenderInfo(CRenderInfo &info)
+bool CRetroPlayer::Supports(ERENDERFEATURE feature)
 {
-  m_processInfo->UpdateRenderInfo(info);
+  return m_video->Supports(feature);
+}
+
+unsigned int CRetroPlayer::RenderCaptureAlloc()
+{
+  return m_video->RenderCaptureAlloc();
+}
+
+void CRetroPlayer::RenderCaptureRelease(unsigned int captureId)
+{
+  m_video->RenderCaptureRelease(captureId);
+}
+
+void CRetroPlayer::RenderCapture(unsigned int captureId, unsigned int width, unsigned int height, int flags)
+{
+  m_video->RenderCapture(captureId, width, height, flags);
+}
+
+bool CRetroPlayer::RenderCaptureGetPixels(unsigned int captureId, unsigned int millis, uint8_t *buffer, unsigned int size)
+{
+  return m_video->RenderCaptureGetPixels(captureId, millis, buffer, size);
 }
 
 void CRetroPlayer::PrintGameInfo(const CFileItem &file) const

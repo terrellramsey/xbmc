@@ -27,6 +27,8 @@
 
 namespace GAME
 {
+  class IRetroPlayerVideoCallback;
+
   class CGameInfoTag : public IArchivable,
                        public ISerializable,
                        public ISortable
@@ -104,6 +106,11 @@ namespace GAME
     virtual void Serialize(CVariant& value) const override;
     virtual void ToSortable(SortItem& sortable, Field field) const override;
 
+    // Attach/deteach data streams
+    void RegisterInputStream(IRetroPlayerVideoCallback* stream) { m_stream = stream; }
+    void UnregisterInputStream() { m_stream = nullptr; }
+    IRetroPlayerVideoCallback* GetInputStream() { return m_stream; }
+
   private:
     bool        m_bLoaded;
     std::string m_strURL;
@@ -120,5 +127,6 @@ namespace GAME
     std::string m_strCartridgeType;
     std::string m_strSavestate;
     std::string m_strGameClient;
+    IRetroPlayerVideoCallback* m_stream;
   };
 }

@@ -20,23 +20,19 @@
 #pragma once
 
 #include "cores/IPlayer.h"
-#include "cores/VideoPlayer/VideoRenderers/RenderManager.h"
-#include "cores/VideoPlayer/DVDClock.h"
 #include "games/GameTypes.h"
-#include "guilib/DispResource.h"
 #include "threads/CriticalSection.h"
 
 #include <memory>
 
 class CProcessInfo;
 
-namespace GAME
+namespace RETROPLAYER
 {
   class CRetroPlayerAudio;
   class CRetroPlayerVideo;
 
-  class CRetroPlayer : public IPlayer,
-                       public IRenderMsg
+  class CRetroPlayer : public IPlayer
   {
   public:
     CRetroPlayer(IPlayerCallback& callback);
@@ -119,30 +115,23 @@ namespace GAME
     //virtual bool SwitchChannel(const PVR::CPVRChannelPtr &channel) override { return false; }
     //virtual void GetAudioCapabilities(std::vector<int> &audioCaps) override { audioCaps.assign(1,IPC_AUD_ALL); }
     //virtual void GetSubtitleCapabilities(std::vector<int> &subCaps) override { subCaps.assign(1,IPC_SUBS_ALL); }
-    virtual void FrameMove() override { m_renderManager.FrameMove(); }
-    virtual void Render(bool clear, uint32_t alpha = 255, bool gui = true) override { m_renderManager.Render(clear, 0, alpha, gui); }
-    virtual void FlushRenderer() override { m_renderManager.Flush(); }
-    virtual void SetRenderViewMode(int mode) override { m_renderManager.SetViewMode(mode); }
-    virtual float GetRenderAspectRatio() override { return m_renderManager.GetAspectRatio(); }
-    virtual void TriggerUpdateResolution() override { m_renderManager.TriggerUpdateResolution(0.0f, 0, 0); }
-    virtual bool IsRenderingVideo() override { return m_renderManager.IsConfigured(); }
-    virtual bool IsRenderingGuiLayer() override { return m_renderManager.IsGuiLayer(); }
-    virtual bool IsRenderingVideoLayer() override { return m_renderManager.IsVideoLayer(); }
+    virtual void FrameMove() override;
+    virtual void Render(bool clear, uint32_t alpha = 255, bool gui = true) override;
+    virtual void FlushRenderer() override;
+    virtual void SetRenderViewMode(int mode) override;
+    virtual float GetRenderAspectRatio() override;
+    virtual void TriggerUpdateResolution() override;
+    virtual bool IsRenderingVideo() override;
+    virtual bool IsRenderingGuiLayer() override;
+    virtual bool IsRenderingVideoLayer() override;
     virtual bool Supports(EINTERLACEMETHOD method) override;
     virtual EINTERLACEMETHOD GetDeinterlacingMethodDefault() override;
-    virtual bool Supports(ESCALINGMETHOD method) override { return m_renderManager.Supports(method); }
-    virtual bool Supports(ERENDERFEATURE feature) override { return m_renderManager.Supports(feature); }
-    virtual unsigned int RenderCaptureAlloc() override { return m_renderManager.AllocRenderCapture(); }
-    virtual void RenderCaptureRelease(unsigned int captureId) override { m_renderManager.ReleaseRenderCapture(captureId); }
-    virtual void RenderCapture(unsigned int captureId, unsigned int width, unsigned int height, int flags) override { m_renderManager.StartRenderCapture(captureId, width, height, flags); }
-    virtual bool RenderCaptureGetPixels(unsigned int captureId, unsigned int millis, uint8_t *buffer, unsigned int size) override { return m_renderManager.RenderCaptureGetPixels(captureId, millis, buffer, size); }
-
-    // implementation of IRenderMsg
-    virtual void VideoParamsChange() override { }
-    virtual void GetDebugInfo(std::string &audio, std::string &video, std::string &general) override { }
-    virtual void UpdateClockSync(bool enabled) override;
-    virtual void UpdateRenderInfo(CRenderInfo &info) override;
-    virtual void UpdateRenderBuffers(int queued, int discard, int free) override {}
+    virtual bool Supports(ESCALINGMETHOD method) override;
+    virtual bool Supports(ERENDERFEATURE feature) override;
+    virtual unsigned int RenderCaptureAlloc() override;
+    virtual void RenderCaptureRelease(unsigned int captureId) override;
+    virtual void RenderCapture(unsigned int captureId, unsigned int width, unsigned int height, int flags) override;
+    virtual bool RenderCaptureGetPixels(unsigned int captureId, unsigned int millis, uint8_t *buffer, unsigned int size) override;
 
   private:
     /**
@@ -150,8 +139,6 @@ namespace GAME
      */
     void PrintGameInfo(const CFileItem &file) const;
 
-    CDVDClock                          m_clock;
-    CRenderManager                     m_renderManager;
     std::unique_ptr<CProcessInfo>      m_processInfo;
     std::unique_ptr<CRetroPlayerAudio> m_audio;
     std::unique_ptr<CRetroPlayerVideo> m_video;

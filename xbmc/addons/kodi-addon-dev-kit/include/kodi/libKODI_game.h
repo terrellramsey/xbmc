@@ -32,12 +32,10 @@
 typedef struct CB_GameLib
 {
   void (*CloseGame)(void* addonData);
-  int (*OpenPixelStream)(void* addonData, GAME_PIXEL_FORMAT format, unsigned int width, unsigned int height, GAME_VIDEO_ROTATION rotation);
-  int (*OpenVideoStream)(void* addonData, GAME_VIDEO_CODEC codec);
-  int (*OpenPCMStream)(void* addonData, GAME_PCM_FORMAT format, const GAME_AUDIO_CHANNEL* channel_map);
-  int(*OpenAudioStream)(void* addonData, GAME_AUDIO_CODEC codec, const GAME_AUDIO_CHANNEL* channel_map);
-  void (*AddStreamData)(void* addonData, GAME_STREAM_TYPE stream, const uint8_t* data, unsigned int size);
-  void (*CloseStream)(void* addonData, GAME_STREAM_TYPE stream);
+  game_stream_handle* (*OpenStream)(const game_stream_details* info)
+  bool (*ChangeStreamDetails)(game_stream_handle* stream, const game_stream_details* info);
+  void (*AddStreamData)(game_stream_handle* stream, const uint8_t* data, unsigned int size);
+  void (*CloseStream)(game_stream_handle* stream);
   void (*EnableHardwareRendering)(void* addonData, const game_hw_info* hw_info);
   uintptr_t (*HwGetCurrentFramebuffer)(void* addonData);
   game_proc_address_t (*HwGetProcAddress)(void* addonData, const char* symbol);
@@ -81,7 +79,7 @@ public:
     return m_callbacks != nullptr;
   }
 
-  // --- Game callbacks --------------------------------------------------------
+  // --- Gameplay callbacks --------------------------------------------------------
 
   /*!
    * \brief Requests the frontend to stop the current game
@@ -91,77 +89,50 @@ public:
     return m_callbacks->CloseGame(m_handle->addonData);
   }
 
+  // Stream callbacks
+
   /*!
-   * \brief Create a video stream for pixel data
+   * \brief Create a stream for game data
    *
-   * \param format The type of pixel data accepted by this stream
-   * \param width The frame width
-   * \param height The frame height
-   * \param rotation The rotation (counter-clockwise) of the video frames
+   * \param info The stream details of a valid type
    *
-   * \return 0 on success or -1 if a video stream is already created
+   * \return the stream handle, NULL on error. Must be closed if non-NULL is returned.
    */
-  bool OpenPixelStream(GAME_PIXEL_FORMAT format, unsigned int width, unsigned int height, GAME_VIDEO_ROTATION rotation)
+  game_stream_handle* OpenStream(const game_stream_details& info)
   {
-    return m_callbacks->OpenPixelStream(m_handle->addonData, format, width, height, rotation) == 0;
+    return m_callbacks->OpenStream(m_handle->addonData, &info);
   }
 
   /*!
-   * \brief Create a video stream for encoded video data
+   * \brief Change the details of an open stream
    *
-   * \param codec The video format accepted by this stream
+   * \param info The stream details of a valid type
    *
-   * \return 0 on success or -1 if a video stream is already created
+   * \return true if the stream was updated, false if the stream failed to update
    */
-  bool OpenVideoStream(GAME_VIDEO_CODEC codec)
+  bool ChangeStreamDetails(game_stream_handle* stream, const game_stream_details& info)
   {
-    return m_callbacks->OpenVideoStream(m_handle->addonData, codec) == 0;
+    return m_callbacks->ChangeStreamDetails(m_handle->addonData, stream, &info);
   }
 
   /*!
-   * \brief Create an audio stream for PCM audio data
+   * \brief Add data to an open stream
    *
-   * \param format The type of audio data accepted by this stream
-   * \param channel_map The channel layout terminated by GAME_CH_NULL
-   *
-   * \return 0 on success or -1 if an audio stream is already created
+   * \param stream The handle returned from OpenStream()
+   * \param data The data buffer
+   * \param size The size of the buffer
    */
-  bool OpenPCMStream(GAME_PCM_FORMAT format, const GAME_AUDIO_CHANNEL* channel_map)
-  {
-    return m_callbacks->OpenPCMStream(m_handle->addonData, format, channel_map) == 0;
-  }
-
-  /*!
-  * \brief Create an audio stream for encoded audio data
-  *
-  * \param codec The audio format accepted by this stream
-  * \param channel_map The channel layout terminated by GAME_CH_NULL
-  *
-  * \return 0 on success or -1 if an audio stream is already created
-  */
-  bool OpenAudioStream(GAME_AUDIO_CODEC codec, const GAME_AUDIO_CHANNEL* channel_map)
-  {
-    return m_callbacks->OpenAudioStream(m_handle->addonData, codec, channel_map) == 0;
-  }
-
-  /*!
-   * \brief Add a data packet to an audio or video stream
-   *
-   * \param stream The target stream
-   * \param data The data packet
-   * \param size The size of the data
-   */
-  void AddStreamData(GAME_STREAM_TYPE stream, const uint8_t* data, unsigned int size)
+  void AddStreamData(game_stream_handle* stream, const uint8_t* data, unsigned int size)
   {
     m_callbacks->AddStreamData(m_handle->addonData, stream, data, size);
   }
 
   /*!
-   * \brief Free the specified stream
+   * \brief Close an opened stream
    *
-   * \param stream The stream to close
+   * \param stream The handle returned from OpenStream()
    */
-  void CloseStream(GAME_STREAM_TYPE stream)
+  void CloseStream(game_stream_handle* stream)
   {
     m_callbacks->CloseStream(m_handle->addonData, stream);
   }

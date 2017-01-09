@@ -108,6 +108,42 @@ GAME_ERROR RunFrame(void);
  */
 GAME_ERROR Reset(void);
 
+// --- Stream operations -------------------------------------------------------
+
+/*!
+ * \brief Open a stream (e.g. for Wii remote audio data)
+ *
+ * \param info The stream details (must be GAME_STREAM_AUDIO)
+ *
+ * \return a handle to the stream, or NULL if the stream couldn't be opened
+ */
+game_stream_handle* OpenStream(const game_stream_details* info);
+
+/*!
+ * \brief Change the details of an open stream
+ *
+ * \param info The stream details of a valid type
+ *
+ * \return the error, or GAME_ERROR_NO_ERROR if the stream was updated or the info already matched
+ */
+GAME_ERROR ChangeStreamDetails(game_stream_handle* stream, const game_stream_details& info);
+
+/*!
+ * \brief Add data to an open stream
+ *
+ * \param stream The handle returned from OpenStream()
+ * \param data The data buffer
+ * \param size The size of the buffer
+ */
+void AddStreamData(game_stream_handle* stream, const uint8_t* data, unsigned int size);
+
+/*!
+ * \brief Close an opened stream
+ *
+ * \param stream The handle returned from OpenStream()
+ */
+void CloseStream(game_stream_handle* stream);
+
 // --- Hardware rendering operations -------------------------------------------
 
 /*!
@@ -164,35 +200,6 @@ bool HasFeature(const char* controller_id, const char* feature_name);
  */
 bool InputEvent(const game_input_event* event);
 
-// --- Serialization operations ------------------------------------------------
-
-/*!
- * \brief Get the number of bytes required to serialize the game
- *
- * \return the number of bytes, or 0 if serialization is not supported
- */
-size_t SerializeSize(void);
-
-/*!
- * \brief Serialize the state of the game
- *
- * \param data The buffer receiving the serialized game data
- * \param size The size of the buffer
- *
- * \return the error, or GAME_ERROR_NO_ERROR if the game was serialized into the buffer
- */
-GAME_ERROR Serialize(uint8_t* data, size_t size);
-
-/*!
- * \brief Deserialize the game from the given state
- *
- * \param data A buffer containing the game's new state
- * \param size The size of the buffer
- *
- * \return the error, or GAME_ERROR_NO_ERROR if the game deserialized
- */
-GAME_ERROR Deserialize(const uint8_t* data, size_t size);
-
 // --- Cheat operations --------------------------------------------------------
 
 /*!
@@ -245,14 +252,15 @@ void __declspec(dllexport) get_addon(void* ptr)
   pClient->RequiresGameLoop         = RequiresGameLoop;
   pClient->RunFrame                 = RunFrame;
   pClient->Reset                    = Reset;
+  pClient->OpenStream               = OpenStream;
+  pClient->ChangeStreamDetails      = ChangeStreamDetails;
+  pClient->AddStreamData            = AddStreamData;
+  pClient->CloseStream              = CloseStream;
   pClient->HwContextReset           = HwContextReset;
   pClient->HwContextDestroy         = HwContextDestroy;
   pClient->UpdatePort               = UpdatePort;
   pClient->HasFeature               = HasFeature;
   pClient->InputEvent               = InputEvent;
-  pClient->SerializeSize            = SerializeSize;
-  pClient->Serialize                = Serialize;
-  pClient->Deserialize              = Deserialize;
   pClient->CheatReset               = CheatReset;
   pClient->GetMemory                = GetMemory;
   pClient->SetCheat                 = SetCheat;

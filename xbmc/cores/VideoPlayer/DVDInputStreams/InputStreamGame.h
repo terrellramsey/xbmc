@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2012-2016 Team Kodi
+*      Copyright (C) 2012-2016 Team Kodi
  *      http://kodi.tv
  *
  *  This Program is free software; you can redistribute it and/or modify
@@ -21,21 +21,24 @@
 
 #include "DVDInputStream.h"
 #include "cores/VideoPlayer/DVDDemuxers/DVDDemux.h"
+#include "cores/RetroPlayer/IRetroPlayerVideoCallback.h"
 #include "games/addons/GameClient.h"
 
-#include <stdint.h>
+#include <memory>
 #include <vector>
+
+#define GAME_STREAM_VIDEO_ID  1
 
 class CInputStreamGame : public CDVDInputStream
 {
 public:
-  CInputStreamGame(const CFileItem &fileitem, const GAME::GameClientPtr &gameClient);
+  CInputStreamGame(const CFileItem &fileitem);
 
   virtual ~CInputStreamGame();
 
   // implementation of CDVDInputStream
-  virtual bool Open() override;
-  virtual void Close() override;
+  virtual bool Open() override { return true; }
+  virtual void Close() override { }
   virtual int Read(uint8_t *buf, int buf_size) override { return -1; } // Can't read arbitrary bytes, must read full packet from demuxer
   virtual int64_t Seek(int64_t offset, int whence) override { return -1; }
   virtual bool Pause(double dTime) override { return false; } // Must pause demuxer
@@ -51,10 +54,9 @@ public:
   virtual IDemux* GetIDemux() override { return m_pDemux; }
 
 private:
-  const GAME::GameClientPtr m_gameClient;
-  IDisplayTime* m_pDisplayTime;
-  IPosTime* m_pPosTime;
-  IDemux* m_pDemux;
+  std::unique_ptr<IDisplayTime> m_pDisplayTime;
+  std::unique_ptr<IPosTime> m_pPosTime;
+  std::unique_ptr<IDemux> m_pDemux;
 };
 
 class CInputStreamGameDisplayTime : public CDVDInputStream::IDisplayTime
@@ -87,15 +89,15 @@ private:
 };
 
 class CInputStreamGameDemux : public CDVDInputStream::IDemux,
-                              public GAME::IGameDemuxCallback
+                              public GAME::IRetroPlayerVideoCallback
 {
 public:
-  CInputStreamGameDemux(const GAME::GameClientPtr &gameClient);
+  CInputStreamGameDemux(const CFileItem &fileItem);
 
   virtual ~CInputStreamGameDemux();
 
   // implementation of CDVDInputStream::IDemux
-  virtual bool OpenDemux() override;
+  virtual bool OpenDemux() override { return true; }
   virtual DemuxPacket* ReadDemux() override;
   virtual CDemuxStream* GetStream(int iStreamId) const override;
   virtual std::vector<CDemuxStream*> GetStreams() const override;
@@ -106,17 +108,12 @@ public:
   virtual void AbortDemux() override;
   virtual void FlushDemux() override;
 
-  // implementation of IGameDemuxCallback
-  virtual void OpenVideoStream(AVCodecID codec, AVPixelFormat pixfmt, unsigned int width, unsigned int height);
-  virtual void CloseVideoStream();
-  virtual void OpenAudioStream(AVCodecID codec, unsigned int samplerate, const CAEChannelInfo& channelLayout);
-  virtual void CloseAudioStream();
+  // implementation of IGameVideoCallback
+  void AddData();
+  void StreamChanged();
 
 private:
   const GAME::GameClientPtr m_gameClient;
 
-  CDemuxStreamVideo* m_videoStream;
-  CDemuxStreamAudio* m_audioStream;
-
-  std::vector<uint8_t> m_buffer;
+  std::unique_ptr<CDemuxStreamVideo> m_stream;
 };

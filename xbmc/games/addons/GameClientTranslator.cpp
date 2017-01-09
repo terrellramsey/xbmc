@@ -83,6 +83,28 @@ AVCodecID CGameClientTranslator::TranslateVideoCodec(GAME_VIDEO_CODEC codec)
   return AV_CODEC_ID_NONE;
 }
 
+unsigned int CGameClientTranslator::TranslateRotation(GAME_VIDEO_ROTATION rotation)
+{
+  unsigned int orientation = 0;
+
+  switch (rotation)
+  {
+  case GAME_VIDEO_ROTATION_90:
+    orientation = 360 - 90;
+    break;
+  case GAME_VIDEO_ROTATION_180:
+    orientation = 360 - 180;
+    break;
+  case GAME_VIDEO_ROTATION_270:
+    orientation = 360 - 270;
+    break;
+  default:
+    break;
+  }
+
+  return orientation;
+}
+
 AEDataFormat CGameClientTranslator::TranslatePCMFormat(GAME_PCM_FORMAT format)
 {
   switch (format)
@@ -122,6 +144,20 @@ AEChannel CGameClientTranslator::TranslateAudioChannel(GAME_AUDIO_CHANNEL channe
     break;
   }
   return AE_CH_NULL;
+}
+
+CAEChannelInfo CGameClientTranslator::TranslateAudioChannels(const GAME_AUDIO_CHANNEL* channelMap)
+{
+  CAEChannelInfo channelLayout;
+
+  for (unsigned int i = 0; i < GAME_CH_MAX; i++)
+  {
+    AEChannel channel = CGameClientTranslator::TranslateAudioChannel(channelMap[i]);
+    if (channel != AE_CH_NULL)
+      channelLayout += channel;
+  }
+
+  return channelLayout;
 }
 
 AVCodecID CGameClientTranslator::TranslateAudioCodec(GAME_AUDIO_CODEC codec)

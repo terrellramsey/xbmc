@@ -43,10 +43,9 @@ CAddonCallbacksGame::CAddonCallbacksGame(CAddon* addon) :
 {
   /* write Kodi game specific add-on function addresses to callback table */
   m_callbacks->CloseGame                      = CloseGame;
-  m_callbacks->OpenPixelStream                = OpenPixelStream;
-  m_callbacks->OpenVideoStream                = OpenVideoStream;
-  m_callbacks->OpenPCMStream                  = OpenPCMStream;
-  m_callbacks->OpenAudioStream                = OpenAudioStream;
+
+  m_callbacks->OpenStream                     = OpenStream;
+  m_callbacks->ChangeStreamDetails            = ChangeStreamDetails;
   m_callbacks->AddStreamData                  = AddStreamData;
   m_callbacks->CloseStream                    = CloseStream;
   m_callbacks->EnableHardwareRendering        = EnableHardwareRendering;
@@ -83,43 +82,25 @@ void CAddonCallbacksGame::CloseGame(void* addonData)
   CApplicationMessenger::GetInstance().PostMsg(TMSG_GUI_ACTION, WINDOW_INVALID, -1, static_cast<void*>(new CAction(ACTION_STOP)));
 }
 
-int CAddonCallbacksGame::OpenPixelStream(void* addonData, GAME_PIXEL_FORMAT format, unsigned int width, unsigned int height, GAME_VIDEO_ROTATION rotation)
+game_stream_handle* CAddonCallbacksGame::OpenStream(void* addonData, const game_stream_details& info)
 {
   CGameClient* gameClient = GetGameClient(addonData, __FUNCTION__);
   if (!gameClient)
-    return -1;
+    return nullptr;
 
-  return gameClient->OpenPixelStream(format, width, height, rotation) ? 0 : -1;
+  return gameClient->OpenStream(info);
 }
 
-int CAddonCallbacksGame::OpenVideoStream(void* addonData, GAME_VIDEO_CODEC codec)
+bool CAddonCallbacksGame::ChangeStreamDetails(void* addonData, game_stream_handle* stream, const game_stream_details& info)
 {
   CGameClient* gameClient = GetGameClient(addonData, __FUNCTION__);
   if (!gameClient)
-    return -1;
+    return nullptr;
 
-  return gameClient->OpenVideoStream(codec) ? 0 : -1;
+  return gameClient->ChangeStreamDetails(stream, info);
 }
 
-int CAddonCallbacksGame::OpenPCMStream(void* addonData, GAME_PCM_FORMAT format, const GAME_AUDIO_CHANNEL* channel_map)
-{
-  CGameClient* gameClient = GetGameClient(addonData, __FUNCTION__);
-  if (!gameClient)
-    return -1;
-
-  return gameClient->OpenPCMStream(format, channel_map) ? 0 : -1;
-}
-
-int CAddonCallbacksGame::OpenAudioStream(void* addonData, GAME_AUDIO_CODEC codec, const GAME_AUDIO_CHANNEL* channel_map)
-{
-  CGameClient* gameClient = GetGameClient(addonData, __FUNCTION__);
-  if (!gameClient)
-    return -1;
-
-  return gameClient->OpenAudioStream(codec, channel_map) ? 0 : -1;
-}
-
-void CAddonCallbacksGame::AddStreamData(void* addonData, GAME_STREAM_TYPE stream, const uint8_t* data, unsigned int size)
+void CAddonCallbacksGame::AddStreamData(void* addonData, game_stream_handle* stream, const uint8_t* data, unsigned int size)
 {
   CGameClient* gameClient = GetGameClient(addonData, __FUNCTION__);
   if (!gameClient)
@@ -128,7 +109,7 @@ void CAddonCallbacksGame::AddStreamData(void* addonData, GAME_STREAM_TYPE stream
   gameClient->AddStreamData(stream, data, size);
 }
 
-void CAddonCallbacksGame::CloseStream(void* addonData, GAME_STREAM_TYPE stream)
+void CAddonCallbacksGame::CloseStream(void* addonData, game_stream_handle* stream)
 {
   CGameClient* gameClient = GetGameClient(addonData, __FUNCTION__);
   if (!gameClient)

@@ -45,12 +45,10 @@ public:
   CB_GameLib* GetCallbacks() const { return m_callbacks; }
 
   static void CloseGame(void* addonData);
-  static int OpenPixelStream(void* addonData, GAME_PIXEL_FORMAT format, unsigned int width, unsigned int height, GAME_VIDEO_ROTATION rotation);
-  static int OpenVideoStream(void* addonData, GAME_VIDEO_CODEC codec);
-  static int OpenPCMStream(void* addonData, GAME_PCM_FORMAT format, const GAME_AUDIO_CHANNEL* channel_map);
-  static int OpenAudioStream(void* addonData, GAME_AUDIO_CODEC codec, const GAME_AUDIO_CHANNEL* channel_map);
-  static void AddStreamData(void* addonData, GAME_STREAM_TYPE stream, const uint8_t* data, unsigned int size);
-  static void CloseStream(void* addonData, GAME_STREAM_TYPE stream);
+  static game_stream_handle* OpenStream(void* addonData, const game_stream_details& info);
+  static bool ChangeStreamDetails(void* addonData, game_stream_handle* stream, const game_stream_details& info);
+  static void AddStreamData(void* addonData, game_stream_handle* stream, const uint8_t* data, unsigned int size);
+  static void CloseStream(void* addonData, game_stream_handle* stream);
   static void EnableHardwareRendering(void* addonData, const game_hw_info* hw_info);
   static uintptr_t HwGetCurrentFramebuffer(void* addonData);
   static game_proc_address_t HwGetProcAddress(void* addonData, const char* sym);
