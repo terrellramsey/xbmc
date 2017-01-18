@@ -24,17 +24,6 @@
 namespace DATASTREAM
 {
   /*!
-   * \brief States of the data stream's underlying data connection
-   */
-  enum class EDataStreamState
-  {
-    CONNECTING,
-    OPEN,
-    CLOSING,
-    CLOSED,
-  };
-
-  /*!
    * \brief Capabilities of the data stream, available before creation
    */
   struct DataStreamCapabilities
@@ -129,7 +118,7 @@ namespace DATASTREAM
     /*!
      * \brief The average latency of the stream, in seconds, or 0 if unknown
      */
-    double latency;
+    float latency;
 
     /*!
      * \brief The jitter, expressed as the latency's RMS, in seconds, or 0 if
@@ -137,7 +126,7 @@ namespace DATASTREAM
      *
      * The standard deviation can be calculated as (jitter - latency).
      */
-    double jitter;
+    float jitter;
 
     /*!
      * \brief The average bandwidth of the stream, in bytes/seconds, or 0 if
@@ -146,13 +135,13 @@ namespace DATASTREAM
      * The average bandwidth is usually expressed as a (possibly weighted)
      * moving average.
      */
-    double bandwidth;
+    float bandwidth;
 
     /*!
      * \brief The stream's estimated maximum bandwidth, in bytes/seconds, or 0
      *        if unknown
      */
-    double maxBandwidth;
+    float maxBandwidth;
   };
 
   /*!
@@ -166,9 +155,9 @@ namespace DATASTREAM
     /*!
      * \brief Get the current state of the data stream
      *
-     * \return The state of the data stream
+     * \return True if the stream is open, false otherwise
      */
-    virtual EDataStreamState GetState() = 0;
+    virtual bool IsOpen() = 0;
 
     /*!
      * \brief Get the capabilities offered by the data stream

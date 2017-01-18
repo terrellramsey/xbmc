@@ -75,7 +75,7 @@ namespace GAME
     /*!
      * \brief Return the current max frame count
      */
-    virtual unsigned int MaxFrameCount() const = 0;
+    virtual uint64_t MaxFrameCount() const = 0;
 
     /*!
      * \brief Update the max frame count
