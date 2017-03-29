@@ -197,12 +197,9 @@ void CGUIWindowGames::GetContextButtons(int itemNumber, CContextButtons &buttons
         bool bHasSavestates = false;
 
         CSavestateDatabase db;
-        if (db.Open())
-        {
-          CFileItemList items;
-          if (db.GetSavestatesNav(items, item->GetPath()))
-            bHasSavestates = items.Size() > 0;
-        }
+        CFileItemList items;
+        if (db.GetSavestatesNav(items, item->GetPath()))
+          bHasSavestates = items.Size() > 0;
 
         if (bHasSavestates)
           buttons.Add(CONTEXT_BUTTON_MANAGE_SAVESTATES, 35273); // Manage saves
