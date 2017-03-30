@@ -63,8 +63,6 @@ namespace DATASTREAM
      */
     virtual bool Open() = 0;
 
-
-
     /*!
      * \brief Close the data stream
      */
@@ -80,6 +78,9 @@ namespace DATASTREAM
      */
     virtual void FreeData(uint8_t* outputData, size_t outputSize) = 0;
 
+    /*!
+     * \brief
+     */
     void GetStats(CompressionStats& stats) = 0;
   };
 }

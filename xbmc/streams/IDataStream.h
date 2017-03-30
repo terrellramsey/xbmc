@@ -43,16 +43,6 @@ namespace DATASTREAM
      * This is usually used for performance reasons.
      */
     bool supportsUnordered;
-
-    /*!
-     * \brief Indicates that the data stream can be opened without negotiation
-     */
-    //bool supportsNegotiation;
-
-    /*!
-     * \brief Indicates that the data stream can't be opened without negotiation
-     */
-    //bool requiresNegotiation;
   };
 
   /*!
@@ -73,12 +63,6 @@ namespace DATASTREAM
      *        messages
      */
     bool ordered;
-
-    /*!
-     * \brief Indicates whether the data stream is negotiated by the stream or
-     *        not
-     */
-    //bool negotiated;
 
     /*!
      * \brief Get the amount of time, in ms, the stream is allowed to take to
