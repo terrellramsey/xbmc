@@ -180,10 +180,13 @@ bool CGUIControllerList::RefreshControllers(void)
   {
     m_controllers = std::move(newControllers);
 
-    // Sort add-ons, with default controller first
+    // Sort add-ons, with TV remote first, and default controller second
     std::sort(m_controllers.begin(), m_controllers.end(),
       [](const ControllerPtr& i, const ControllerPtr& j)
       {
+        if (i->ID() == DEFAULT_REMOTE_ID && j->ID() != DEFAULT_REMOTE_ID) return true;
+        if (i->ID() != DEFAULT_REMOTE_ID && j->ID() == DEFAULT_REMOTE_ID) return false;
+
         if (i->ID() == DEFAULT_CONTROLLER_ID && j->ID() != DEFAULT_CONTROLLER_ID) return true;
         if (i->ID() != DEFAULT_CONTROLLER_ID && j->ID() == DEFAULT_CONTROLLER_ID) return false;
 
