@@ -1142,7 +1142,7 @@ void CGUIDialogAddonSettings::SetDefaultSettings()
           m_settings[id] = value;
         else if (type == "bool")
           m_settings[id] = "false";
-        else if (type == "slider" || type == "enum")
+        else if (type == "slider" || type == "enum" || type == "select")
           m_settings[id] = "0";
         else
           m_settings[id] = "";
