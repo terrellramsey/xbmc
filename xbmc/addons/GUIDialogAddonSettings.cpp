@@ -739,6 +739,13 @@ void CGUIDialogAddonSettings::CreateControls()
                 ((CGUIButtonControl *)pControl)->SetLabel2(label);
               }
             }
+            else if (type == "select" && !values.empty())
+            {
+              std::vector<std::string> labelVec = StringUtils::Split(values, '|');
+              int selected = atoi(value.c_str());
+              if (selected >= 0 && selected < (int)labelVec.size())
+                ((CGUIButtonControl *)pControl)->SetLabel2(labelVec[selected]);
+            }
             else
               ((CGUIButtonControl *)pControl)->SetLabel2(value);
           }
