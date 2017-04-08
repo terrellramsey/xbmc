@@ -333,6 +333,7 @@ TiXmlElement CAddonDll::MakeSetting(DllSetting& setting) const
       node.SetAttribute("id", setting.id);
       node.SetAttribute("type", "bool");
       node.SetAttribute("label", setting.label);
+      node.SetAttribute("default", setting.current);
       break;
     }
     case DllSetting::SPIN:
@@ -347,6 +348,7 @@ TiXmlElement CAddonDll::MakeSetting(DllSetting& setting) const
         values.append("|");
       }
       node.SetAttribute("values", values.c_str());
+      node.SetAttribute("default", setting.current);
       break;
     }
   default:
