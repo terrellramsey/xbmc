@@ -21,7 +21,7 @@ msgid "TV Remote"
 msgstr ""
 
 msgctxt "#30001"
-msgid "OK"
+msgid "Select"
 msgstr ""
 
 msgctxt "#30002"

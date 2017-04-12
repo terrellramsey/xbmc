@@ -7935,7 +7935,6 @@ msgctxt "#15015"
 msgid "Remove"
 msgstr ""
 
-#: system/settings/settings.xml
 #: xbmc/settings/dialogs/GUIDialogAudioDSPSettings.cpp
 msgctxt "#15016"
 msgid "Games"
@@ -16555,13 +16554,13 @@ msgctxt "#35054"
 msgid "Activates controller rumble motors when a notification occurs."
 msgstr ""
 
+#empty strings from id 35055 to 35056
+
 #. Help text for controller window
 #: xbmc/games/controllers/windows/GUIControllerWindow.cpp
-msgctxt "#35055"
-msgid "Use the keyboard or remote to select a controller profile. When prompted, press the button on your game controller that best matches what you see on the screen. If you make a mistake you can repeat the process."
+msgctxt "#35057"
+msgid "Select the "
 msgstr ""
-
-#empty strings from id 35056 to 35057
 
 #. Title of controller configuration window
 #: addons/skin.estuary/xml/DialogGameControllers.xml
