@@ -311,6 +311,7 @@ lib/cpluff/stamp-h1
 
 #/tools/depends
 /tools/depends/native/*/*native/
+/tools/depends/target/*/*-target/
 /tools/depends/target/*/aarch64-linux-gnu/
 /tools/depends/native/JsonSchemaBuilder/bin/
 /tools/depends/native/TexturePacker/bin/
