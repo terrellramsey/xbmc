@@ -1,10 +1,10 @@
-APP_NAME Kodi
-COMPANY_NAME XBMC-Foundation
-WEBSITE http://kodi.tv
+APP_NAME Rosetta LIVE
+COMPANY_NAME Unique Digital
+WEBSITE http://www.uniquedigitalcinema.com
 VERSION_MAJOR 18
 VERSION_MINOR 0
 VERSION_TAG ALPHA1
 VERSION_CODE 179701
 ADDON_API 17.9.701
-APP_PACKAGE org.xbmc.kodi
+APP_PACKAGE com.uniquedigital.rosetta
 
