@@ -168,7 +168,7 @@ case $host in
       platform_cflags+=" -march=armv7-a -mtune=cortex-a9 -mfloat-abi=softfp -mfpu=neon"
     fi
     platform_ldflags="-L$prefix/$deps_dir/lib/$use_sdk"
-    platform_cxxflags="$platform_cflags -frtti"
+    platform_cxxflags="$platform_cflags -frtti -std=c++11"
     platform_includes="-I$prefix/$deps_dir/include/$use_sdk"
     platform_os="android"
     #android builds are always cross
