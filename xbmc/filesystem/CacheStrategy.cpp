@@ -98,7 +98,7 @@ int CSimpleFileCache::Open()
 
   CURL fileURL(m_filename);
 
-  if (!m_cacheFileWrite->OpenForWrite(fileURL, false))
+  if (!m_cacheFileWrite->OpenForWrite(fileURL, true))
   {
     CLog::LogF(LOGERROR, "failed to create file \"%s\" for writing", m_filename.c_str());
     Close();
