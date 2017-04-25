@@ -37,6 +37,7 @@ typedef struct DemuxPacket
     , iSize(iSize)
     , pts(pts)
     , dts(dts)
+    , bKeyFrame(false)
   {};
 
   unsigned char *pData;   // data
@@ -52,4 +53,6 @@ typedef struct DemuxPacket
   int dispTime;
 
   std::shared_ptr<DemuxCryptoInfo> cryptoInfo;
+
+  bool bKeyFrame;
 } DemuxPacket;
