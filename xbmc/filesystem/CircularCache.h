@@ -37,8 +37,8 @@ public:
     virtual void Close();
 
     virtual size_t GetMaxWriteSize(const size_t& iRequestSize) ;
-    virtual int WriteToCache(const char *buf, size_t len) ;
-    virtual int ReadFromCache(char *buf, size_t len) ;
+    virtual int WriteToCache(const uint8_t *buf, size_t len) ;
+    virtual int ReadFromCache(uint8_t *buf, size_t len) ;
     virtual int64_t WaitForData(unsigned int minimum, unsigned int iMillis) ;
 
     virtual int64_t Seek(int64_t pos) ;

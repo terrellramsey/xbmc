@@ -136,7 +136,7 @@ size_t CSimpleFileCache::GetMaxWriteSize(const size_t& iRequestSize)
   return iRequestSize; // Can always write since it's on disk
 }
 
-int CSimpleFileCache::WriteToCache(const char *pBuffer, size_t iSize)
+int CSimpleFileCache::WriteToCache(const uint8_t *pBuffer, size_t iSize)
 {
   size_t written = 0;
   while (iSize > 0)
@@ -163,7 +163,7 @@ int64_t CSimpleFileCache::GetAvailableRead()
   return m_nWritePosition - m_nReadPosition;
 }
 
-int CSimpleFileCache::ReadFromCache(char *pBuffer, size_t iMaxSize)
+int CSimpleFileCache::ReadFromCache(uint8_t *pBuffer, size_t iMaxSize)
 {
   int64_t iAvailable = GetAvailableRead();
   if ( iAvailable <= 0 )
@@ -316,12 +316,12 @@ size_t CDoubleCache::GetMaxWriteSize(const size_t& iRequestSize)
   return m_pCache->GetMaxWriteSize(iRequestSize); // NOTE: Check the active cache only
 }
 
-int CDoubleCache::WriteToCache(const char *pBuffer, size_t iSize)
+int CDoubleCache::WriteToCache(const uint8_t *pBuffer, size_t iSize)
 {
   return m_pCache->WriteToCache(pBuffer, iSize);
 }
 
-int CDoubleCache::ReadFromCache(char *pBuffer, size_t iMaxSize)
+int CDoubleCache::ReadFromCache(uint8_t *pBuffer, size_t iMaxSize)
 {
   return m_pCache->ReadFromCache(pBuffer, iMaxSize);
 }

@@ -44,8 +44,8 @@ public:
   virtual void Close() = 0;
 
   virtual size_t GetMaxWriteSize(const size_t& iRequestSize) = 0;
-  virtual int WriteToCache(const char *pBuffer, size_t iSize) = 0;
-  virtual int ReadFromCache(char *pBuffer, size_t iMaxSize) = 0;
+  virtual int WriteToCache(const uint8_t *pBuffer, size_t iSize) = 0;
+  virtual int ReadFromCache(uint8_t *pBuffer, size_t iMaxSize) = 0;
   virtual int64_t WaitForData(unsigned int iMinAvail, unsigned int iMillis) = 0;
 
   virtual int64_t Seek(int64_t iFilePosition) = 0;
@@ -85,8 +85,8 @@ public:
   virtual void Close() ;
 
   virtual size_t GetMaxWriteSize(const size_t& iRequestSize) ;
-  virtual int WriteToCache(const char *pBuffer, size_t iSize) ;
-  virtual int ReadFromCache(char *pBuffer, size_t iMaxSize) ;
+  virtual int WriteToCache(const uint8_t *pBuffer, size_t iSize) ;
+  virtual int ReadFromCache(uint8_t *pBuffer, size_t iMaxSize) ;
   virtual int64_t WaitForData(unsigned int iMinAvail, unsigned int iMillis) ;
 
   virtual int64_t Seek(int64_t iFilePosition);
@@ -120,8 +120,8 @@ public:
   virtual void Close() ;
 
   virtual size_t GetMaxWriteSize(const size_t& iRequestSize) ;
-  virtual int WriteToCache(const char *pBuffer, size_t iSize) ;
-  virtual int ReadFromCache(char *pBuffer, size_t iMaxSize) ;
+  virtual int WriteToCache(const uint8_t *pBuffer, size_t iSize) ;
+  virtual int ReadFromCache(uint8_t *pBuffer, size_t iMaxSize) ;
   virtual int64_t WaitForData(unsigned int iMinAvail, unsigned int iMillis) ;
 
   virtual int64_t Seek(int64_t iFilePosition);
