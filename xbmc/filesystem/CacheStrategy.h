@@ -78,7 +78,7 @@ protected:
 */
 class CSimpleFileCache : public CCacheStrategy {
 public:
-  CSimpleFileCache();
+  CSimpleFileCache(const std::string& filename = "");
   virtual ~CSimpleFileCache();
 
   virtual int Open() ;
@@ -103,6 +103,7 @@ public:
 
 protected:
   std::string m_filename;
+  bool m_bTemporaryFilename;
   IFile*   m_cacheFileRead;
   IFile*   m_cacheFileWrite;
   CEvent*  m_hDataAvailEvent;
