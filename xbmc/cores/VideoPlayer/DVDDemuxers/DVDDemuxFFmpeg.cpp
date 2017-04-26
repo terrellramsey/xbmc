@@ -1343,6 +1343,8 @@ CDemuxStream* CDVDDemuxFFmpeg::AddStream(int streamIdx)
         if(av_dict_get(pStream->metadata, "title", NULL, 0))
           st->m_description = av_dict_get(pStream->metadata, "title", NULL, 0)->value;
 
+        st->format = static_cast<AVSampleFormat>(pStream->codecpar->format);
+
         break;
       }
     case AVMEDIA_TYPE_VIDEO:
@@ -1428,6 +1430,8 @@ CDemuxStream* CDVDDemuxFFmpeg::AddStream(int streamIdx)
         }
         if (av_dict_get(pStream->metadata, "title", NULL, 0))
           st->m_description = av_dict_get(pStream->metadata, "title", NULL, 0)->value;
+
+        st->format = static_cast<AVPixelFormat>(pStream->codecpar->format);
 
         break;
       }

@@ -162,6 +162,7 @@ public:
     iOrientation = 0;
     iBitsPerPixel = 0;
     iBitRate = 0;
+    format = AV_PIX_FMT_NONE;
   }
 
   virtual ~CDemuxStreamVideo() {}
@@ -177,6 +178,7 @@ public:
   int iBitsPerPixel;
   int iBitRate;
   std::string stereo_mode; // expected stereo mode
+  AVPixelFormat format;
 };
 
 class CDemuxStreamAudio : public CDemuxStream
@@ -190,6 +192,7 @@ public:
     iBitRate = 0;
     iBitsPerSample = 0;
     iChannelLayout = 0;
+    format = AV_SAMPLE_FMT_NONE;
     type = STREAM_AUDIO;
   }
 
@@ -203,6 +206,7 @@ public:
   int iBitRate;
   int iBitsPerSample;
   uint64_t iChannelLayout;
+  AVSampleFormat format;
 };
 
 class CDemuxStreamSubtitle : public CDemuxStream
